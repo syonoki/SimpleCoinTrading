@@ -1,6 +1,7 @@
 ﻿using SimpleCoinTrading.Core;
 using SimpleCoinTrading.Core.Broker;
 using SimpleCoinTrading.Core.Data;
+using SimpleCoinTrading.Core.Logs;
 
 namespace SimpleCoinTrading.Server.Algorithms;
 
@@ -12,11 +13,12 @@ public sealed class PaperOrderTestAlgorithm : IAlgorithm
     private readonly List<IDisposable> _subs = new();
 
     private string? _activeOrderId;
+    private IAlgorithmLogger _logger;
 
     public void Initialize(IAlgorithmContext ctx)
     {
         _ctx = ctx;
-
+        _logger = ctx.GetLogger(Name);
         _subs.Add(ctx.SubscribeBarClosed(OnBarClosed));
 
         // 체결/주문상태는 broker.Events로도 볼 수 있지만,
@@ -63,12 +65,12 @@ public sealed class PaperOrderTestAlgorithm : IAlgorithm
 
             if (!ack.Accepted || ack.OrderId is null)
             {
-                Console.WriteLine($"[ALGO] order rejected: {ack.Message}");
+                _logger.Info($"[ALGO] order rejected: {ack.Message}");
                 return;
             }
 
             _activeOrderId = ack.OrderId;
-            Console.WriteLine($"[ALGO] placed LIMIT BUY {sym} qty={qty} px={limit} id={ack.OrderId}");
+            _logger.Info($"[ALGO] placed LIMIT BUY {sym} qty={qty} px={limit} id={ack.OrderId}");
 
             // 상태 폴링(테스트 편의) - 이벤트 기반만으로도 가능하지만, v1은 폴링도 OK
             for (int i = 0; i < 50; i++)
@@ -78,7 +80,7 @@ public sealed class PaperOrderTestAlgorithm : IAlgorithm
 
                 if (st.Status is OrderStatus.Filled or OrderStatus.Canceled or OrderStatus.Rejected)
                 {
-                    Console.WriteLine(
+                    _logger.Info(
                         $"[ALGO] done: {st.Status} filled={st.FilledQuantity}/{st.Quantity} avg={st.AvgFillPrice}");
                     _activeOrderId = null;
                     return;

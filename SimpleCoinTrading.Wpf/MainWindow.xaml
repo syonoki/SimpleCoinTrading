@@ -4,6 +4,6 @@
         xmlns:local="clr-namespace:SimpleCoinTrading.Wpf"
         Title="Trading Monitor" Height="800" Width="1200">
     <Grid Margin="12">
-        <local:Sample Width="auto" Height="auto"></local:Sample>
+        <local:Sample2 Width="auto" Height="auto"></local:Sample2>
     </Grid>
 </Window>

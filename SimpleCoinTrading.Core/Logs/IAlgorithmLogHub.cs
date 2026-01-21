@@ -9,4 +9,5 @@ public interface IAlgorithmLogHub
     IReadOnlyList<AlgoLogEvent> GetRecent(string algorithmId, int limit);
 
     ChannelReader<AlgoLogEvent> Subscribe(string algorithmId);
+    void Unsubscribe(string algorithmId, ChannelReader<AlgoLogEvent> reader);
 }

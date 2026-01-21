@@ -23,12 +23,23 @@ public class AlgoLogGrpcService: AlgoLogService.AlgoLogServiceBase
     {
         var reader = _hub.Subscribe(request.AlgorithmId);
 
-        while (await reader.WaitToReadAsync(context.CancellationToken))
+        try
         {
-            while (reader.TryRead(out var e))
+            while (await reader.WaitToReadAsync(context.CancellationToken))
             {
-                await responseStream.WriteAsync(ToDto(e));
+                while (reader.TryRead(out var e))
+                {
+                    await responseStream.WriteAsync(ToDto(e));
+                }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // 클라이언트 연결 종료 시 발생하는 정상적인 예외
+        }
+        finally
+        {
+            _hub.Unsubscribe(request.AlgorithmId, reader);
         }
     }
 

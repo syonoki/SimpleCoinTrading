@@ -7,13 +7,13 @@ public sealed class AlgorithmLogHub : IAlgorithmLogHub
 {
     private readonly int _capacityPerAlgo;
     private readonly ConcurrentDictionary<string, RingBuffer<AlgoLogEvent>> _buffers = new();
-    private readonly ConcurrentDictionary<string, ConcurrentBag<Channel<AlgoLogEvent>>> _subs = new();
+    private readonly ConcurrentDictionary<string, ConcurrentDictionary<ChannelReader<AlgoLogEvent>, Channel<AlgoLogEvent>>> _subs = new();
     private readonly IReadOnlyList<IAlgorithmLogSink> _sinks;
 
-    public AlgorithmLogHub(int capacityPerAlgo = 5000, IEnumerable<IAlgorithmLogSink> sinks = null!)
+    public AlgorithmLogHub(int capacityPerAlgo = 5000, IEnumerable<IAlgorithmLogSink>? sinks = null)
     {
         _capacityPerAlgo = capacityPerAlgo;
-        _sinks = sinks.ToList();
+        _sinks = sinks?.ToList() ?? new List<IAlgorithmLogSink>();
     }
 
     public void Write(AlgoLogEvent e)
@@ -26,9 +26,9 @@ public sealed class AlgorithmLogHub : IAlgorithmLogHub
         foreach (var sink in _sinks)
             sink.Write(e);
 
-        if (_subs.TryGetValue(algoId, out var bag))
+        if (_subs.TryGetValue(algoId, out var dict))
         {
-            foreach (var ch in bag)
+            foreach (var ch in dict.Values)
                 ch.Writer.TryWrite(e);
         }
     }
@@ -49,9 +49,18 @@ public sealed class AlgorithmLogHub : IAlgorithmLogHub
             SingleWriter = false
         });
 
-        var bag = _subs.GetOrAdd(algoId, _ => new ConcurrentBag<Channel<AlgoLogEvent>>());
-        bag.Add(ch);
+        var dict = _subs.GetOrAdd(algoId, _ => new ConcurrentDictionary<ChannelReader<AlgoLogEvent>, Channel<AlgoLogEvent>>());
+        dict.TryAdd(ch.Reader, ch);
 
         return ch.Reader;
+    }
+
+    public void Unsubscribe(string algorithmId, ChannelReader<AlgoLogEvent> reader)
+    {
+        var algoId = string.IsNullOrWhiteSpace(algorithmId) ? "UNKNOWN" : algorithmId;
+        if (_subs.TryGetValue(algoId, out var dict))
+        {
+            dict.TryRemove(reader, out _);
+        }
     }
 }

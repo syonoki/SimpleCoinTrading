@@ -15,12 +15,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddGrpc();
 
-builder.Services.AddSingleton<IAlgorithmLogHub>(_ => new AlgorithmLogHub(capacityPerAlgo: 5000));
-
-// 상태/이벤트 허브 DI
-builder.Services.AddSingleton<TradingState>();
-builder.Services.AddSingleton<EventHub>();
-
 // Core / Infra 컴포넌트들
 builder.Services.AddSingleton<MarketPipeline>(provider =>
 {
@@ -102,7 +96,13 @@ builder.Services.AddSingleton<IAlgorithmLogHub>(sp =>
 {
     var sinks = sp.GetServices<IAlgorithmLogSink>();
     return new AlgorithmLogHub(capacityPerAlgo: 5000, sinks);
-});builder.Services.AddSingleton<IAlgorithmLoggerFactory, AlgorithmLoggerFactory>();
+});
+
+// 상태/이벤트 허브 DI
+builder.Services.AddSingleton<TradingState>();
+builder.Services.AddSingleton<EventHub>();
+
+builder.Services.AddSingleton<IAlgorithmLoggerFactory, AlgorithmLoggerFactory>();
 
 builder.Services.AddSingleton<TradingHostedService>();
 builder.Services.AddHostedService<TradingHostedService>();
@@ -114,6 +114,7 @@ var app = builder.Build();
 app.MapGrpcService<GreeterService>();
 // gRPC endpoints
 app.MapGrpcService<TradingControlService>();
+app.MapGrpcService<AlgoLogGrpcService>();
 
 // health/ready (운영/모니터링)
 app.MapGet("/health", () => Results.Ok(new { ok = true }));

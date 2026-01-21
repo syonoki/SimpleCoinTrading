@@ -1,6 +1,7 @@
 ﻿using SimpleCoinTrading.Core;
 using SimpleCoinTrading.Core.Broker;
 using SimpleCoinTrading.Core.Data;
+using SimpleCoinTrading.Core.Logs;
 using SimpleCoinTrading.Core.Time.TimeFlows;
 
 namespace SimpleCoinTrading.Server.Algorithms;
@@ -23,6 +24,7 @@ public sealed class VolatilityBreakoutAlgorithm : IAlgorithm
     private DateTime? _targetDate;
     private string? _activeOrderId;
     private bool _isPositionHeld;
+    private IAlgorithmLogger _logger;
 
     public VolatilityBreakoutAlgorithm(string symbol = "KRW-BTC", decimal k = 0.5m, decimal orderQuantity = 0.001m)
     {
@@ -34,21 +36,21 @@ public sealed class VolatilityBreakoutAlgorithm : IAlgorithm
     public void Initialize(IAlgorithmContext ctx)
     {
         _ctx = ctx;
-
+        _logger = ctx.GetLogger(Name);
         // 매분마다 가격을 확인하여 타겟가 도달 시 매수
         _subs.Add(ctx.SubscribeBarClosed(OnBarClosed));
     }
 
     public void Run()
     {
-        Console.WriteLine($"[ALGO] {Name} started for {_symbol} (K={_k})");
+        _logger.Info($"[ALGO] {Name} started for {_symbol} (K={_k})");
     }
 
     public void Stop()
     {
         foreach (var s in _subs) s.Dispose();
         _subs.Clear();
-        Console.WriteLine($"[ALGO] {Name} stopped.");
+        _logger.Info($"[ALGO] {Name} stopped.");
     }
 
     private void OnBarClosed(BarClosedEvent e)
@@ -102,7 +104,7 @@ public sealed class VolatilityBreakoutAlgorithm : IAlgorithm
         _targetPrice = todayOpen + (range * _k);
         _targetDate = today;
 
-        Console.WriteLine($"[ALGO] New Target Price for {today:yyyy-MM-dd}: {_targetPrice} (Open: {todayOpen}, Range: {range})");
+        _logger.Info($"[ALGO] New Target Price for {today:yyyy-MM-dd}: {_targetPrice} (Open: {todayOpen}, Range: {range})");
         
         // 날이 바뀌었으니 포지션 상태 초기화 (만약 밤새 들고 있었다면)
         // 실제로는 잔고 조회를 하는 것이 정확함
@@ -112,7 +114,7 @@ public sealed class VolatilityBreakoutAlgorithm : IAlgorithm
     {
         _ = Task.Run(async () =>
         {
-            Console.WriteLine($"[ALGO] Target reached! Placing BUY order at {currentPrice}");
+            _logger.Info($"[ALGO] Target reached! Placing BUY order at {currentPrice}");
             
             var request = new PlaceOrderRequest(
                 Symbol: _symbol,
@@ -127,11 +129,11 @@ public sealed class VolatilityBreakoutAlgorithm : IAlgorithm
             {
                 _activeOrderId = ack.OrderId;
                 _isPositionHeld = true;
-                Console.WriteLine($"[ALGO] BUY order placed: {ack.OrderId}");
+                _logger.Info($"[ALGO] BUY order placed: {ack.OrderId}");
             }
             else
             {
-                Console.WriteLine($"[ALGO] BUY order rejected: {ack.Message}");
+                _logger.Info($"[ALGO] BUY order rejected: {ack.Message}");
             }
         });
     }
@@ -140,7 +142,7 @@ public sealed class VolatilityBreakoutAlgorithm : IAlgorithm
     {
         _ = Task.Run(async () =>
         {
-            Console.WriteLine("[ALGO] End of day reached. Placing SELL order to liquidate.");
+            _logger.Info("[ALGO] End of day reached. Placing SELL order to liquidate.");
 
             var request = new PlaceOrderRequest(
                 Symbol: _symbol,
@@ -155,11 +157,11 @@ public sealed class VolatilityBreakoutAlgorithm : IAlgorithm
             {
                 _isPositionHeld = false;
                 _activeOrderId = null;
-                Console.WriteLine($"[ALGO] SELL order placed: {ack.OrderId}");
+                _logger.Info($"[ALGO] SELL order placed: {ack.OrderId}");
             }
             else
             {
-                Console.WriteLine($"[ALGO] SELL order rejected: {ack.Message}");
+                _logger.Info($"[ALGO] SELL order rejected: {ack.Message}");
             }
         });
     }
