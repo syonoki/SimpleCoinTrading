@@ -1,4 +1,4 @@
-﻿namespace SimpleCoinTrading.Core.OrderOrchestrators;
+﻿namespace SimpleCoinTrading.Core.Orders;
 
 public interface ITradingGuard
 {

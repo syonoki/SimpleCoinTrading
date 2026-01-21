@@ -31,6 +31,14 @@
         <OutputDir>obj\Debug\net10.0\</OutputDir>
         <Generator>MSBuild:Compile</Generator>
       </Protobuf>
+      <Protobuf Include="protos\position.proto">
+        <GrpcServices>Client</GrpcServices>
+        <Access>Public</Access>
+        <ProtoCompile>True</ProtoCompile>
+        <CompileOutputs>True</CompileOutputs>
+        <OutputDir>obj\Debug\net10.0\</OutputDir>
+        <Generator>MSBuild:Compile</Generator>
+      </Protobuf>
       <Protobuf Include="protos\trading.proto">
         <GrpcServices>Client</GrpcServices>
         <Access>Public</Access>
@@ -39,6 +47,10 @@
         <OutputDir>obj\Debug\net10.0\</OutputDir>
         <Generator>MSBuild:Compile</Generator>
       </Protobuf>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Controls\" />
     </ItemGroup>
 
 </Project>

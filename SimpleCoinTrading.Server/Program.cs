@@ -2,13 +2,15 @@ using SimpleCoinTrading.Core;
 using SimpleCoinTrading.Core.Broker;
 using SimpleCoinTrading.Core.Data;
 using SimpleCoinTrading.Core.Logs;
-using SimpleCoinTrading.Core.OrderOrchestrators;
-using SimpleCoinTrading.Core.Time;
+using SimpleCoinTrading.Core.Orders;
+using SimpleCoinTrading.Core.Positions;
 using SimpleCoinTrading.Core.Time.Clocks;
 using SimpleCoinTrading.Core.Time.TimeFlows;
 using SimpleCoinTrading.Data;
 using SimpleCoinTrading.Server;
 using SimpleCoinTrading.Server.Services;
+using SimpleCoinTrading.Server.Services.Orders;
+using SimpleCoinTrading.Server.Services.Positions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,9 +70,15 @@ builder.Services.AddSingleton<PaperBroker>(provider =>
 builder.Services.AddSingleton<IBroker>(sp =>
 {
     var inner = sp.GetRequiredService<PaperBroker>();
-    var state = sp.GetRequiredService<TradingState>();
+    var state = sp.GetRequiredService<OrderStateProjection>();
     return new KillSwitchBroker(inner, state);
 });
+
+builder.Services.AddSingleton<PositionProjection>();
+builder.Services.AddSingleton<IPositionUpdateHub, PositionUpdateHub>();
+
+// 브릿지: Projection.Changes -> Hub publish 연결
+builder.Services.AddSingleton<PositionProjectionHubBridge>();
 
 builder.Services.AddSingleton<MarketDataEventBus>();
 builder.Services.AddSingleton<ITradingGuard, TradingGuard>();
@@ -99,8 +107,8 @@ builder.Services.AddSingleton<IAlgorithmLogHub>(sp =>
 });
 
 // 상태/이벤트 허브 DI
-builder.Services.AddSingleton<TradingState>();
-builder.Services.AddSingleton<EventHub>();
+builder.Services.AddSingleton<OrderStateProjection>();
+builder.Services.AddSingleton<ServerEventHub>();
 
 builder.Services.AddSingleton<IAlgorithmLoggerFactory, AlgorithmLoggerFactory>();
 
@@ -119,7 +127,7 @@ app.MapGrpcService<AlgoLogGrpcService>();
 // health/ready (운영/모니터링)
 app.MapGet("/health", () => Results.Ok(new { ok = true }));
 
-app.MapGet("/ready", (TradingState state) =>
+app.MapGet("/ready", (OrderStateProjection state) =>
 {
     // 최소 ready 기준: 마켓데이터 OK
     if (!state.MarketDataOk)
@@ -131,7 +139,10 @@ app.MapGet("/ready", (TradingState state) =>
 app.MapGet("/", () => "TradingService gRPC is running.");
 app.Run();
 
-public class ServerTimeAdvancer : ITimeAdvancer
+namespace SimpleCoinTrading.Server
 {
-    public void AdvanceTo(DateTime marketUtc) { }
+    public class ServerTimeAdvancer : ITimeAdvancer
+    {
+        public void AdvanceTo(DateTime marketUtc) { }
+    }
 }

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using SimpleCoinTrading.Core.Broker;
 using SimpleCoinTrading.Core.Logs;
 
-namespace SimpleCoinTrading.Core.OrderOrchestrators;
+namespace SimpleCoinTrading.Core.Orders;
 
 public sealed class OrderLifecycleTracker : IHostedService, IDisposable
 {

@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using SimpleCoinTrading.Core.OrderOrchestrators;
+using SimpleCoinTrading.Core.Orders;
 
 namespace SimpleCoinTrading.Core.Tests.OrderOrchestrators;
 

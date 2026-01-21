@@ -1,13 +1,14 @@
 ﻿using FluentAssertions;
 using NSubstitute;
 using SimpleCoinTrading.Core.Broker;
+using SimpleCoinTrading.Core.Orders;
 
 namespace SimpleCoinTrading.Core.Tests.Broker;
 
 public class KillSwitchBrokerTests
 {
     private readonly IBroker _inner = Substitute.For<IBroker>();
-    private readonly TradingState _state = new();
+    private readonly OrderStateProjection _state = new();
     private readonly KillSwitchBroker _sut;
 
     public KillSwitchBrokerTests()

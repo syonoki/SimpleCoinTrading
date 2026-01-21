@@ -1,7 +1,7 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using SimpleCoinTrading.Core.Broker;
 
-namespace SimpleCoinTrading.Server.Services;
+namespace SimpleCoinTrading.Server.Services.Orders;
 
 
 public static class ServerEventFactory

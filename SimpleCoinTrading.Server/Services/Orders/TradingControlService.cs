@@ -1,19 +1,18 @@
-﻿using SimpleCoinTrading.Core.Broker;
-
-namespace SimpleCoinTrading.Server.Services;
-
-using Google.Protobuf.WellKnownTypes;
+﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using SimpleCoinTrading.Core.Broker;
+using SimpleCoinTrading.Core.Orders;
 
+namespace SimpleCoinTrading.Server.Services.Orders;
 
 public sealed class TradingControlService : TradingControl.TradingControlBase
 {
-    private readonly TradingState _state;
-    private readonly EventHub _hub;
+    private readonly OrderStateProjection _state;
+    private readonly ServerEventHub _hub;
     private readonly IBroker _broker;
     private readonly ILogger<TradingControlService> _logger;
 
-    public TradingControlService(TradingState state, EventHub hub, IBroker broker, ILogger<TradingControlService> logger)
+    public TradingControlService(OrderStateProjection state, ServerEventHub hub, IBroker broker, ILogger<TradingControlService> logger)
     {
         _state = state;
         _hub = hub;
@@ -35,7 +34,6 @@ public sealed class TradingControlService : TradingControl.TradingControlBase
         
         resp.Orders.AddRange(snapshot.Orders.Select(Map));
         resp.Fills.AddRange(snapshot.RecentFills.Select(Map));
-        resp.Positions.AddRange(snapshot.Positions.Select(Map));
         resp.Algorithms.AddRange(snapshot.Algorithms.Select(Map));
         
         return Task.FromResult(resp);

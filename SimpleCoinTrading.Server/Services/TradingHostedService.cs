@@ -1,8 +1,10 @@
 ﻿using SimpleCoinTrading.Core;
 using SimpleCoinTrading.Core.Broker;
 using SimpleCoinTrading.Core.Data;
+using SimpleCoinTrading.Core.Orders;
 using SimpleCoinTrading.Data;
 using SimpleCoinTrading.Server.Algorithms;
+using SimpleCoinTrading.Server.Services.Orders;
 
 
 namespace SimpleCoinTrading.Server.Services;
@@ -10,8 +12,8 @@ namespace SimpleCoinTrading.Server.Services;
 public sealed class TradingHostedService : BackgroundService
 {
     private readonly ILogger<TradingHostedService> _log;
-    private readonly TradingState _state;
-    private readonly EventHub _hub;
+    private readonly OrderStateProjection _state;
+    private readonly ServerEventHub _hub;
 
     // 너가 만든 것들(인터페이스/구현체)
     private readonly IBroker _broker;
@@ -22,8 +24,8 @@ public sealed class TradingHostedService : BackgroundService
 
     public TradingHostedService(
         ILogger<TradingHostedService> log,
-        TradingState state,
-        EventHub hub,
+        OrderStateProjection state,
+        ServerEventHub hub,
         IBroker broker,
         IMarketDataSource marketSource,
         IAlgorithmEngine engine)
@@ -102,8 +104,8 @@ public sealed class TradingHostedService : BackgroundService
             {
                 var snap = _state.Snapshot();
                 _log.LogInformation(
-                    "STATE seq={Seq} orders={Orders} fills={Fills} pos={Pos} market={Market}",
-                    snap.Seq, snap.Orders.Count, snap.RecentFills.Count, snap.Positions.Count, snap.MarketDataStatus);
+                    "STATE seq={Seq} orders={Orders} fills={Fills} market={Market}",
+                    snap.Seq, snap.Orders.Count, snap.RecentFills.Count, snap.MarketDataStatus);
 
                 await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
             }

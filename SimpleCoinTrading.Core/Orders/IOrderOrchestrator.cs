@@ -1,6 +1,6 @@
 ﻿using SimpleCoinTrading.Core.Broker;
 
-namespace SimpleCoinTrading.Core.OrderOrchestrators;
+namespace SimpleCoinTrading.Core.Orders;
 
 public interface IOrderOrchestrator
 {

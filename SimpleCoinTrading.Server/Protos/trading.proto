@@ -23,7 +23,6 @@ message SnapshotResponse {
 
   repeated Order orders = 3;
   repeated Fill fills = 4;
-  repeated Position positions = 5;
 
   bool market_data_ok = 6;
   string market_data_status = 7;

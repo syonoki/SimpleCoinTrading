@@ -1,9 +1,11 @@
-﻿namespace SimpleCoinTrading.Server;
-
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Threading.Channels;
 
-public sealed class EventHub
+namespace SimpleCoinTrading.Server.Services.Orders;
+
+
+
+public sealed class ServerEventHub
 {
     private readonly ConcurrentDictionary<Guid, Channel<ServerEvent>> _subs = new();
 

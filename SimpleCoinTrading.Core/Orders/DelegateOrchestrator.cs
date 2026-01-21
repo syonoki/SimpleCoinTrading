@@ -3,7 +3,7 @@ using SimpleCoinTrading.Core.Broker;
 using SimpleCoinTrading.Core.Logs;
 using SimpleCoinTrading.Core.Time.Clocks;
 
-namespace SimpleCoinTrading.Core.OrderOrchestrators;
+namespace SimpleCoinTrading.Core.Orders;
 
 public sealed class DelegatingOrchestrator : IOrderOrchestrator
 {

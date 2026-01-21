@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace SimpleCoinTrading.Core.OrderOrchestrators;
+namespace SimpleCoinTrading.Core.Orders;
 
 public interface IOrderIdMap
 {

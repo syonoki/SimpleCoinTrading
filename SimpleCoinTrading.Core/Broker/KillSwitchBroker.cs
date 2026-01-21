@@ -1,10 +1,12 @@
-﻿namespace SimpleCoinTrading.Core.Broker;
+﻿using SimpleCoinTrading.Core.Orders;
+
+namespace SimpleCoinTrading.Core.Broker;
 public sealed class KillSwitchBroker : IBroker
 {
     private readonly IBroker _inner;
-    private readonly TradingState _state;
+    private readonly OrderStateProjection _state;
 
-    public KillSwitchBroker(IBroker inner, TradingState state)
+    public KillSwitchBroker(IBroker inner, OrderStateProjection state)
     {
         _inner = inner;
         _state = state;

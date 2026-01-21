@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
 using NSubstitute;
-using SimpleCoinTrading.Core.OrderOrchestrators;
+using SimpleCoinTrading.Core.Orders;
 using SimpleCoinTrading.Core.Time.Clocks;
 
 namespace SimpleCoinTrading.Core.Tests.OrderOrchestrators;

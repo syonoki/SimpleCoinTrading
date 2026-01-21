@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using SimpleCoinTrading.Core.Time.Clocks;
 
-namespace SimpleCoinTrading.Core.OrderOrchestrators;
+namespace SimpleCoinTrading.Core.Orders;
 
 public interface IRateLimiterFactory
 {
