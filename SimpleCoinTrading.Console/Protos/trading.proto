@@ -1,0 +1,167 @@
+﻿syntax = "proto3";
+package trading;
+
+option csharp_namespace = "SimpleCoinTrading.Server";
+
+import "google/protobuf/timestamp.proto";
+
+service TradingControl {
+  rpc GetSnapshot(GetSnapshotRequest) returns (SnapshotResponse);
+  rpc SubscribeEvents(SubscribeEventsRequest) returns (stream ServerEvent);
+  rpc SetKillSwitch(SetKillSwitchRequest) returns (SetKillSwitchResponse);
+}
+
+message GetSnapshotRequest {}
+
+message SubscribeEventsRequest {
+  int64 after_seq = 1; // UI가 마지막으로 본 seq 이후부터 받고 싶을 때(초기엔 0)
+}
+
+message SnapshotResponse {
+  int64 seq = 1;
+  google.protobuf.Timestamp time_utc = 2;
+
+  repeated Order orders = 3;
+  repeated Fill fills = 4;
+  repeated Position positions = 5;
+
+  bool market_data_ok = 6;
+  string market_data_status = 7;
+
+  repeated AlgorithmState algorithms = 8;
+  bool KillSwitchEnabled=9;
+}
+
+message Order {
+  string order_id = 1;
+  string symbol = 2;
+  string side = 3;     // "BUY"/"SELL"
+  string type = 4;     // "MARKET"/"LIMIT"
+  string status = 5;   // "ACCEPTED"/"PARTIALLY_FILLED"/...
+  double quantity = 6;
+  double filled_quantity = 7;
+  double limit_price = 8; // 0이면 null 취급
+  double avg_fill_price = 9;
+  google.protobuf.Timestamp updated_utc = 10;
+}
+
+message Fill {
+  string order_id = 1;
+  string symbol = 2;
+  string side = 3;
+  double price = 4;
+  double quantity = 5;
+  double fee = 6;
+  string fee_currency = 7;
+  google.protobuf.Timestamp time_utc = 8;
+  string trade_id = 9;
+}
+
+message Position {
+  string symbol = 1;
+  double quantity = 2;
+  double avg_price = 3;
+}
+
+message AlgorithmState {
+  string name = 1;
+  string status = 2; // "RUNNING"/"STOPPED"/"FAULTED"
+  string message = 3;
+}
+
+message ServerEvent {
+  int64 seq = 1;
+  google.protobuf.Timestamp time_utc = 2;
+
+  oneof payload {
+    SignalProposedEvent signal_proposed = 10;
+    BatchStartedEvent batch_started = 11;
+    NettingCompletedEvent netting_completed = 12;
+    RiskCheckedEvent risk_checked = 13;
+    OrdersPreparedEvent orders_prepared = 14;
+    OrderEventPayload order_event = 15;
+
+    FillEvent fill = 20;
+    SystemEvent system = 21;
+  }
+}
+
+message EventBase {
+  int64 batch_id = 1;
+  google.protobuf.Timestamp occurred_at = 2;
+  string correlation_id = 3;
+}
+
+message SignalProposedEvent {
+  EventBase base = 1;
+  string algorithm_name = 2;
+  string signal_type = 3;
+}
+
+message BatchStartedEvent {
+  EventBase base = 1;
+}
+
+message NettingCompletedEvent {
+  EventBase base = 1;
+}
+
+message RiskCheckedEvent {
+  EventBase base = 1;
+  bool passed = 2;
+  string reason = 3;
+}
+
+message OrdersPreparedEvent {
+  EventBase base = 1;
+  int32 count = 2;
+}
+
+message OrderEventPayload {
+  EventBase base = 1;
+  string order_id = 2;
+  string symbol = 3;
+
+  oneof detail {
+    OrderSubmittedEvent submitted = 10;
+    OrderAckedEvent acked = 11;
+    OrderFilledEvent filled = 12;
+    OrderRejectedEvent rejected = 13;
+  }
+}
+
+message OrderSubmittedEvent {
+  double qty = 1;
+}
+
+message OrderAckedEvent {
+  bool accepted = 1;
+  string message = 2;
+}
+
+message OrderFilledEvent {
+  double filled_qty = 1;
+  double price = 2;
+}
+
+message OrderRejectedEvent {
+  string reason = 1;
+}
+
+message FillEvent { Fill fill = 1; }
+
+message SystemEvent {
+  string level = 1;   // "INFO"/"WARN"/"ERROR"
+  string message = 2;
+}
+
+
+message SetKillSwitchRequest {
+  bool enabled = 1;
+  bool cancel_all = 2; // 옵션
+}
+message SetKillSwitchResponse {
+  bool enabled = 1;
+  int64 seq = 2;
+}
+

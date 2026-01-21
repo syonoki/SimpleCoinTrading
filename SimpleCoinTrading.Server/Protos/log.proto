@@ -1,0 +1,41 @@
+﻿syntax = "proto3";
+package trading;
+
+option csharp_namespace = "SimpleCoinTrading.Server";
+
+enum AlgoLogLevel {
+  ALGO_LOG_LEVEL_UNSPECIFIED = 0;
+  ALGO_LOG_LEVEL_TRACE = 1;
+  ALGO_LOG_LEVEL_DEBUG = 2;
+  ALGO_LOG_LEVEL_INFO = 3;
+  ALGO_LOG_LEVEL_WARN = 4;
+  ALGO_LOG_LEVEL_ERROR = 5;
+}
+
+message AlgoLogDto {
+  int64 time_unix_ms = 1;
+  string algorithm_id = 2;
+  AlgoLogLevel level = 3;
+  string message = 4;
+  string symbol = 5;
+  string client_order_id = 6;
+  string order_id = 7;
+}
+
+message GetAlgoLogsRequest {
+  string algorithm_id = 1;
+  int32 limit = 2;
+}
+
+message GetAlgoLogsResponse {
+  repeated AlgoLogDto logs = 1;
+}
+
+message SubscribeAlgoLogsRequest {
+  string algorithm_id = 1;
+}
+
+service AlgoLogService {
+  rpc GetRecent(GetAlgoLogsRequest) returns (GetAlgoLogsResponse);
+  rpc Subscribe(SubscribeAlgoLogsRequest) returns (stream AlgoLogDto);
+}
