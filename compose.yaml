@@ -1,0 +1,13 @@
+﻿services:
+  simplecointrading:
+    image: simplecointrading
+    build:
+      context: .
+      dockerfile: SimpleCoinTrading/Dockerfile
+
+  simplecointrading.server:
+    image: simplecointrading.server
+    build:
+      context: .
+      dockerfile: SimpleCoinTrading.Server/Dockerfile
+
