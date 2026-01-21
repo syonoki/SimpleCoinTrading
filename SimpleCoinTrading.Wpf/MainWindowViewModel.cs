@@ -87,9 +87,6 @@ public sealed class SampleViewModel : INotifyPropertyChanged
                 Fills.Clear();
                 foreach (var f in snap.Fills) Fills.Add(f);
 
-                Positions.Clear();
-                foreach (var p in snap.Positions) Positions.Add(p);
-
                 Algorithms.Clear();
                 foreach (var a in snap.Algorithms) Algorithms.Add(a);
 
@@ -154,9 +151,6 @@ public sealed class SampleViewModel : INotifyPropertyChanged
 
                         Fills.Clear();
                         foreach (var f in snap.Fills) Fills.Add(f);
-
-                        Positions.Clear();
-                        foreach (var p in snap.Positions) Positions.Add(p);
 
                         Algorithms.Clear();
                         foreach (var a in snap.Algorithms) Algorithms.Add(a);
