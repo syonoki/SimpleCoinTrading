@@ -16,14 +16,15 @@ public interface IOrderOwnershipStore
 
 public sealed class InMemoryOrderOwnershipStore : IOrderOwnershipStore
 {
-    private readonly ConcurrentDictionary<string, string> _orderToAlgo = new();
-    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _algoToOrders = new();
+    private readonly ConcurrentDictionary<string, string> _orderToAlgo = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _algoToOrders = new(StringComparer.OrdinalIgnoreCase);
 
     public void SetOwner(string orderId, string algorithmId)
     {
-        _orderToAlgo[orderId] = algorithmId;
+        var algo = Norm(algorithmId);
+        _orderToAlgo[orderId] = algo;
 
-        var set = _algoToOrders.GetOrAdd(algorithmId, _ => new ConcurrentDictionary<string, byte>());
+        var set = _algoToOrders.GetOrAdd(algo, _ => new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase));
         set[orderId] = 0;
     }
 
@@ -32,7 +33,8 @@ public sealed class InMemoryOrderOwnershipStore : IOrderOwnershipStore
 
     public IReadOnlyCollection<string> GetOrderIds(string algorithmId)
     {
-        if (_algoToOrders.TryGetValue(algorithmId, out var set))
+        var algo = Norm(algorithmId);
+        if (_algoToOrders.TryGetValue(algo, out var set))
             return set.Keys.ToArray();
 
         return Array.Empty<string>();
@@ -42,7 +44,10 @@ public sealed class InMemoryOrderOwnershipStore : IOrderOwnershipStore
     {
         _orderToAlgo.TryRemove(orderId, out _);
 
-        if (_algoToOrders.TryGetValue(algorithmId, out var set))
+        var algo = Norm(algorithmId);
+        if (_algoToOrders.TryGetValue(algo, out var set))
             set.TryRemove(orderId, out _);
     }
+
+    private static string Norm(string s) => string.IsNullOrWhiteSpace(s) ? "UNKNOWN" : s;
 }

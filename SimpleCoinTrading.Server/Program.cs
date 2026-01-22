@@ -78,7 +78,7 @@ builder.Services.AddSingleton<PositionProjection>();
 builder.Services.AddSingleton<IPositionUpdateHub, PositionUpdateHub>();
 
 // 브릿지: Projection.Changes -> Hub publish 연결
-builder.Services.AddSingleton<PositionProjectionHubBridge>();
+builder.Services.AddHostedService<PositionProjectionHubBridge>();
 
 builder.Services.AddSingleton<MarketDataEventBus>();
 builder.Services.AddSingleton<ITradingGuard, TradingGuard>();
@@ -116,6 +116,7 @@ builder.Services.AddSingleton<TradingHostedService>();
 builder.Services.AddHostedService<TradingHostedService>();
 builder.Services.AddHostedService<OrderLifecycleTracker>();
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -123,6 +124,7 @@ app.MapGrpcService<GreeterService>();
 // gRPC endpoints
 app.MapGrpcService<TradingControlService>();
 app.MapGrpcService<AlgoLogGrpcService>();
+app.MapGrpcService<PositionControlService>();
 
 // health/ready (운영/모니터링)
 app.MapGet("/health", () => Results.Ok(new { ok = true }));

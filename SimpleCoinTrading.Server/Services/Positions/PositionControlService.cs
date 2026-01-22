@@ -1,8 +1,7 @@
 ﻿using Grpc.Core;
 using SimpleCoinTrading.Core.Positions;
-using SimpleCoinTrading.Server.Services.Positions;
 
-namespace SimpleCoinTrading.Server.Services;
+namespace SimpleCoinTrading.Server.Services.Positions;
 public static class PositionDtoMapper
 {
     public static PositionDto ToDto(PositionState p) => new()

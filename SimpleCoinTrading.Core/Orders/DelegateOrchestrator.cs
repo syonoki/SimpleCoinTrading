@@ -83,11 +83,20 @@ public sealed class DelegatingOrchestrator : IOrderOrchestrator
 
         // 5) 실제 브로커 호출
         var result = await _broker.PlaceOrderAsync(request, ct);
-        _algoLogHub.Write(new AlgoLogEvent(DateTimeOffset.UtcNow, algoId, AlgoLogLevel.Info,
-            $"ORDER_SENT orderId={result.OrderId}", Symbol: request.Symbol, ClientOrderId: clientOrderId, OrderId: result.OrderId));
         
-        _orderIdMap.Set(clientOrderId, result.OrderId);
-        _ownership.SetOwner(result.OrderId, algoId);
+        if (result.Accepted && !string.IsNullOrEmpty(result.OrderId))
+        {
+            _algoLogHub.Write(new AlgoLogEvent(DateTimeOffset.UtcNow, algoId, AlgoLogLevel.Info,
+                $"ORDER_SENT orderId={result.OrderId}", Symbol: request.Symbol, ClientOrderId: clientOrderId, OrderId: result.OrderId));
+            
+            _orderIdMap.Set(clientOrderId, result.OrderId);
+            _ownership.SetOwner(result.OrderId, algoId);
+        }
+        else
+        {
+             _algoLogHub.Write(new AlgoLogEvent(DateTimeOffset.UtcNow, algoId, AlgoLogLevel.Error,
+                $"ORDER_REJECTED msg={result.Message}", Symbol: request.Symbol, ClientOrderId: clientOrderId));
+        }
 
         return result;
     }

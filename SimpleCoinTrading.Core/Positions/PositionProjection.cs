@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Reactive.Subjects;
 using SimpleCoinTrading.Core.Broker;
+using SimpleCoinTrading.Core.Data;
 using SimpleCoinTrading.Core.Orders;
 
 namespace SimpleCoinTrading.Core.Positions;
@@ -33,9 +34,20 @@ public sealed class PositionProjection
     private readonly Subject<PositionChanged> _changes = new();
     public IObservable<PositionChanged> Changes => _changes;
 
-    public PositionProjection(IOrderOwnershipStore ownership)
+    public PositionProjection(IOrderOwnershipStore ownership, IBroker broker, MarketDataEventBus mdebus)
     {
         _ownership = ownership;
+        
+        broker.Events.Subscribe(e =>
+        {
+            if (e is FillEvent fill)
+            {
+                HandleFill(fill);
+            }
+
+        });
+        
+        mdebus.SubTrade(tick => HandleTick(tick.Symbol, tick.Tick.Price, tick.Tick.TimeUtc));
     }
 
     public IReadOnlyCollection<PositionState> Snapshot(string? algorithmId = null)
@@ -175,10 +187,16 @@ public sealed class PositionProjection
     
     public void HandleFill(FillEvent fe)
     {
-        var changed = OnFill(fe); // IEnumerable<PositionState>
+        // OnFill 내부에서 _ownership 확인
+        var changed = OnFill(fe); 
 
         foreach (var p in changed)
         {
+            if (p.AlgorithmId == "UNKNOWN")
+            {
+                // 로깅 가능하면 좋겠지만, 라이브러리 레이어이므로 일단 OnNext는 보냄
+            }
+            
             var removed = p.NetQty == 0m;
             _changes.OnNext(new PositionChanged(p, removed));
         }

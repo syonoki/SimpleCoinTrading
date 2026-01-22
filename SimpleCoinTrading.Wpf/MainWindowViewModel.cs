@@ -210,19 +210,6 @@ public sealed class SampleViewModel : INotifyPropertyChanged
         
         Fills.Insert(0, f);
         while (Fills.Count > 200) Fills.RemoveAt(Fills.Count - 1);
-
-        var pos = Positions.FirstOrDefault(p => p.Symbol == symbol);
-        if (pos == null)
-        {
-            pos = new Position { Symbol = symbol, Quantity = 0, AvgPrice = 0 };
-            Positions.Add(pos);
-        }
-
-        // 간단 포지션 계산 (Side를 알 수 없는 경우 일단 누적하거나 무시)
-        // 실제로는 OrderEventPayload에서 Side 정보를 주거나 기존 Order 상태를 참조해야 함
-        
-        int idx = Positions.IndexOf(pos);
-        if (idx >= 0) Positions[idx] = pos;
     }
 
     private void UpsertOrder(Order o)

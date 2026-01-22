@@ -47,7 +47,7 @@ public sealed class PaperOrderTestAlgorithm : IAlgorithm
         if (ob is null) return;
 
         // ask보다 약간 높은 가격으로 넣어서 체결 유도(또는 ask 이하로 넣어 미체결 테스트도 가능)
-        var limit = ob.Value.BestAskPrice - 1000000;
+        var limit = ob.Value.BestAskPrice * 1.001m;
 
         // 아주 작은 수량으로 테스트
         var qty = 0.0002m;
@@ -55,6 +55,7 @@ public sealed class PaperOrderTestAlgorithm : IAlgorithm
         _ = Task.Run(async () =>
         {
             var ack = await _ctx!.PlaceOrderAsync(new PlaceOrderRequest(
+                AlgorithmId: Name,
                 Symbol: sym,
                 Side: OrderSide.Buy,
                 Type: OrderType.Limit,
