@@ -75,10 +75,8 @@ public sealed class SampleViewModel : INotifyPropertyChanged
         try
         {
             Status = "Connecting...";
-
             // 1) Snapshot 1회
             var snap = await _grpc.GetSnapshotAsync(_cts.Token);
-
             Application.Current.Dispatcher.Invoke(() =>
             {
                 Orders.Clear();
@@ -117,7 +115,7 @@ public sealed class SampleViewModel : INotifyPropertyChanged
         {
             try
             {
-                using var call = _grpc.SubscribeEvents(cursor, ct);
+                using var call = _grpc.SubscribeEvents(1, ct);
 
                 await foreach (var ev in call.ResponseStream.ReadAllAsync(ct))
                 {

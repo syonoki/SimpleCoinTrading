@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SimpleCoinTrading.Console\SimpleCoinTrading.Console.csproj" />
+      <ProjectReference Include="..\SimpleCoinTrading.Core\SimpleCoinTrading.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -11,10 +11,13 @@ service TradingControl {
   rpc SetKillSwitch(SetKillSwitchRequest) returns (SetKillSwitchResponse);
 }
 
-message GetSnapshotRequest {}
+message GetSnapshotRequest {
+  string algorithm_id = 1; // empty면 전체
+}
 
 message SubscribeEventsRequest {
   int64 after_seq = 1; // UI가 마지막으로 본 seq 이후부터 받고 싶을 때(초기엔 0)
+  string algorithm_id = 2; // empty면 전체
 }
 
 message SnapshotResponse {
@@ -42,6 +45,7 @@ message Order {
   double limit_price = 8; // 0이면 null 취급
   double avg_fill_price = 9;
   google.protobuf.Timestamp updated_utc = 10;
+  string algorithm_id = 11;
 }
 
 message Fill {
@@ -54,6 +58,7 @@ message Fill {
   string fee_currency = 7;
   google.protobuf.Timestamp time_utc = 8;
   string trade_id = 9;
+  string algorithm_id = 10;
 }
 
 message Position {

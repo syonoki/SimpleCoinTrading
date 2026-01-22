@@ -12,7 +12,7 @@ namespace SimpleCoinTrading.Server.Algorithms;
 /// </summary>
 public sealed class VolatilityBreakoutAlgorithm : IAlgorithm
 {
-    public string Name => "VolatilityBreakoutAlgorithm";
+    public string Name => $"VolatilityBreakoutAlgorithm-{_symbol}";
 
     private IAlgorithmContext? _ctx;
     private readonly List<IDisposable> _subs = new();
