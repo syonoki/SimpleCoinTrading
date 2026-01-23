@@ -1,4 +1,5 @@
 ﻿using SimpleCoinTrading.Core.Data;
+using SimpleCoinTrading.Core.Utils;
 
 namespace SimpleCoinTrading.Core.Broker;
 

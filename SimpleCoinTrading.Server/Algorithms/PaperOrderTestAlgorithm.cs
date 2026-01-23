@@ -1,4 +1,5 @@
 ﻿using SimpleCoinTrading.Core;
+using SimpleCoinTrading.Core.Algorithms;
 using SimpleCoinTrading.Core.Broker;
 using SimpleCoinTrading.Core.Data;
 using SimpleCoinTrading.Core.Logs;
@@ -9,7 +10,7 @@ public sealed class PaperOrderTestAlgorithm : IAlgorithm
 {
     public string Name => "PaperOrderTestAlgorithm";
 
-    private IAlgorithmContext? _ctx;
+    private IAlgorithmContext _ctx;
     private readonly List<IDisposable> _subs = new();
 
     private string? _activeOrderId;
@@ -18,15 +19,12 @@ public sealed class PaperOrderTestAlgorithm : IAlgorithm
     public void Initialize(IAlgorithmContext ctx)
     {
         _ctx = ctx;
-        _logger = ctx.GetLogger(Name);
-        _subs.Add(ctx.SubscribeBarClosed(OnBarClosed));
-
-        // 체결/주문상태는 broker.Events로도 볼 수 있지만,
-        // 전략이 직접 구독하고 싶다면 ctx가 broker를 노출하는 형태로 받으면 됨.
+        _logger = ctx.GetLogger();
     }
 
     public void Run()
     {
+        _subs.Add(_ctx.SubscribeBarClosed(OnBarClosed));
     }
 
     public void Stop()

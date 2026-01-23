@@ -1,4 +1,5 @@
 ﻿using SimpleCoinTrading.Core;
+using SimpleCoinTrading.Core.Algorithms;
 using SimpleCoinTrading.Core.Broker;
 using SimpleCoinTrading.Core.Data;
 using SimpleCoinTrading.Core.Logs;
@@ -36,7 +37,7 @@ public sealed class VolatilityBreakoutAlgorithm : IAlgorithm
     public void Initialize(IAlgorithmContext ctx)
     {
         _ctx = ctx;
-        _logger = ctx.GetLogger(Name);
+        _logger = ctx.GetLogger();
         // 매분마다 가격을 확인하여 타겟가 도달 시 매수
         _subs.Add(ctx.SubscribeBarClosed(OnBarClosed));
     }

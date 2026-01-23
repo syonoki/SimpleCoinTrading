@@ -1,4 +1,4 @@
-﻿namespace SimpleCoinTrading.Core;
+﻿namespace SimpleCoinTrading.Core.Utils;
 
 // =========================
 // Minimal event stream (Rx 없이 IObservable 구현)

@@ -1,4 +1,4 @@
-﻿namespace SimpleCoinTrading.Core;
+﻿namespace SimpleCoinTrading.Core.Utils;
 
 public sealed class RingBuffer<T>
 {

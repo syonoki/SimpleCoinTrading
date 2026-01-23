@@ -1,4 +1,5 @@
 using SimpleCoinTrading.Core;
+using SimpleCoinTrading.Core.Algorithms;
 using SimpleCoinTrading.Core.Broker;
 using SimpleCoinTrading.Core.Data;
 using SimpleCoinTrading.Core.Logs;

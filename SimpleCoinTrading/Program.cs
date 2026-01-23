@@ -1,6 +1,7 @@
 ﻿using SimpleCoinTrading;
 using Microsoft.Extensions.Logging;
 using SimpleCoinTrading.Core;
+using SimpleCoinTrading.Core.Algorithms;
 using SimpleCoinTrading.Core.Broker;
 using SimpleCoinTrading.Core.Data;
 using SimpleCoinTrading.Core.Logs;
@@ -8,6 +9,7 @@ using SimpleCoinTrading.Core.Orders;
 using SimpleCoinTrading.Core.Time;
 using SimpleCoinTrading.Core.Time.Clocks;
 using SimpleCoinTrading.Core.Time.TimeFlows;
+using SimpleCoinTrading.Core.Utils;
 using SimpleCoinTrading.Data;
 
 public sealed class PaperOrderTestAlgorithm : IAlgorithm
@@ -216,6 +218,7 @@ internal static class Program
             algoLogHub);
         
         var ctx = new AlgorithmContext(
+            "PaperOrderTestAlgorithm",
             view, 
             clock, 
             bus, 

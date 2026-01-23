@@ -34,7 +34,6 @@ public sealed class TradingControlService : TradingControl.TradingControlBase
         
         resp.Orders.AddRange(snapshot.Orders.Select(Map));
         resp.Fills.AddRange(snapshot.RecentFills.Select(Map));
-        resp.Algorithms.AddRange(snapshot.Algorithms.Select(Map));
         
         return Task.FromResult(resp);
     }
@@ -140,13 +139,6 @@ public sealed class TradingControlService : TradingControl.TradingControlBase
         Symbol = p.Symbol,
         Quantity = (double)p.Quantity,
         AvgPrice = (double)p.AvgPrice
-    };
-
-    private static SimpleCoinTrading.Server.AlgorithmState Map(AlgorithmRuntimeState a) => new()
-    {
-        Name = a.Name,
-        Status = a.Status,
-        Message = a.Message
     };
 
     private static Timestamp ToTimestamp(DateTime dt)

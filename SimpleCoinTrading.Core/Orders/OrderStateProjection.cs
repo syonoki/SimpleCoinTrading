@@ -9,12 +9,11 @@ public sealed record TradingSnapshot(
     bool KillSwitchEnabled,
     IReadOnlyList<OrderState> Orders,
     IReadOnlyList<Fill> RecentFills,
-    IReadOnlyList<AlgorithmRuntimeState> Algorithms,
+
     bool MarketDataOk,
     string MarketDataStatus
 );
 
-public sealed record AlgorithmRuntimeState(string Name, string Status, string Message);
 
 public sealed class OrderStateProjection
 {
@@ -22,7 +21,6 @@ public sealed class OrderStateProjection
 
     // ===== 핵심 상태 =====
     private readonly ConcurrentDictionary<string, OrderState> _orders = new(StringComparer.OrdinalIgnoreCase);
-    private readonly ConcurrentDictionary<string, AlgorithmRuntimeState> _algorithms = new(StringComparer.OrdinalIgnoreCase);
 
     // 최근 체결 N개만 보관 (UI/디버그용)
     private readonly ConcurrentQueue<Fill> _recentFills = new();
@@ -68,11 +66,7 @@ public sealed class OrderStateProjection
         return NextSeq();
     }
 
-    public long ApplyAlgorithmState(string name, string status, string message)
-    {
-        _algorithms[name] = new AlgorithmRuntimeState(name, status, message);
-        return NextSeq();
-    }
+
 
     // ===== 스냅샷 =====
 
@@ -84,7 +78,6 @@ public sealed class OrderStateProjection
             TimeUtc: DateTime.UtcNow,
             Orders: _orders.Values.OrderByDescending(o => o.UpdatedUtc ?? o.CreatedUtc).ToList(),
             RecentFills: _recentFills.ToArray().Reverse().ToList(), // 최신이 앞에 오게
-            Algorithms: _algorithms.Values.OrderBy(a => a.Name).ToList(),
             MarketDataOk: MarketDataOk,
             MarketDataStatus: MarketDataStatus
         );

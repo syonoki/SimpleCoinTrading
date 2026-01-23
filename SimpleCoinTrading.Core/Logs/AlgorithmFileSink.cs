@@ -1,7 +1,7 @@
-﻿namespace SimpleCoinTrading.Core.Logs;
-
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Text;
+
+namespace SimpleCoinTrading.Core.Logs;
 
 public sealed class AlgorithmFileLogSink : IAlgorithmLogSink
 {

@@ -1,7 +1,9 @@
 ﻿using SimpleCoinTrading.Core;
+using SimpleCoinTrading.Core.Algorithms;
 using SimpleCoinTrading.Core.Broker;
 using SimpleCoinTrading.Core.Data;
 using SimpleCoinTrading.Core.Orders;
+using SimpleCoinTrading.Core.Utils;
 using SimpleCoinTrading.Data;
 using SimpleCoinTrading.Server.Algorithms;
 using SimpleCoinTrading.Server.Services.Orders;
@@ -80,10 +82,6 @@ public sealed class TradingHostedService : BackgroundService
         
         _engine.StartAlgorithm(sampleAlgorithm1); // 전략이 있다면 여기서 시작
         _engine.StartAlgorithm(sampleAlgorithm2); // 전략이 있다면 여기서 시작
-
-        // 알고리즘 상태 동기화
-        _state.ApplyAlgorithmState(sampleAlgorithm1.Name, "RUNNING", "");
-        _state.ApplyAlgorithmState(sampleAlgorithm2.Name, "RUNNING", "");
 
         await _marketSource.RunAsync(cancellationToken); // WS 시작
 

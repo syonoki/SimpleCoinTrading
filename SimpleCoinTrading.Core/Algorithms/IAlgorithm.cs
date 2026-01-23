@@ -1,17 +1,18 @@
 ﻿using SimpleCoinTrading.Core.Broker;
 using SimpleCoinTrading.Core.Data;
 using SimpleCoinTrading.Core.Logs;
-using SimpleCoinTrading.Core.Time;
 using SimpleCoinTrading.Core.Time.Clocks;
 
-namespace SimpleCoinTrading.Core;
+namespace SimpleCoinTrading.Core.Algorithms;
 
 public interface IAlgorithmContext
 {
+    string AlgorithmId { get; }
     IMarketDataView Market { get; } // bars/trades/book 조회
     IClock Clock { get; }
 
-    IAlgorithmLogger GetLogger(string algorithmId);
+    IAlgorithmLogger GetLogger();
+    void Dispose();
     
     // Order
     Task<OrderState?> GetOrderAsync(string orderId, CancellationToken ct = default);

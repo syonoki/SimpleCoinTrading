@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Channels;
+using SimpleCoinTrading.Core.Utils;
 
 namespace SimpleCoinTrading.Core.Logs;
 

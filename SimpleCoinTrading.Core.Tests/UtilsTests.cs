@@ -1,4 +1,5 @@
 ﻿using SimpleCoinTrading;
+using SimpleCoinTrading.Core.Utils;
 using Xunit;
 
 namespace SimpleCoinTrading.Core.Tests;
