@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 using Grpc.Core;
 using Grpc.Net.Client;
@@ -11,7 +12,7 @@ namespace SimpleCoinTrading.Wpf;
 
 public class AlgorithmViewModel : INotifyPropertyChanged
 {
-    public ObservableCollection<AlgorithmState> Algorithms { get; } = new();
+    public ObservableCollection<AlgorithmState> Algorithms { get; set; }= new();
 
     private AlgorithmState? _selectedAlgorithm;
 
@@ -27,6 +28,7 @@ public class AlgorithmViewModel : INotifyPropertyChanged
         }
     }
 
+    public ICommand ActionCommand { get; set; }
     public event EventHandler<AlgorithmState?>? SelectedAlgorithmChanged;
 
     private readonly Dispatcher _ui = Application.Current.Dispatcher;
@@ -39,8 +41,42 @@ public class AlgorithmViewModel : INotifyPropertyChanged
         _grpc = grpc;
         _channel = channel;
         _algoAdminClient = new AlgorithmAdminService.AlgorithmAdminServiceClient(channel);
-
+        
+        ActionCommand = new RelayCommand(startOrStop, 
+            o => SelectedAlgorithm != null);
+        
         _ = InitializeAsync();
+    }
+
+    private async void startOrStop(object? o)
+    {
+        if (SelectedAlgorithm != null && _selectedAlgorithm.Status == "Running")
+        {
+            await _grpc.StopAlgorithmAsync(SelectedAlgorithm.AlgorithmId, CancellationToken.None);
+
+            _ui.Invoke((Action)(() =>
+            {
+                SelectedAlgorithm.Status = "Stopped";
+                SelectedAlgorithm.Message = "Algorithm stopped.";
+                OnPropertyChanged(nameof(SelectedAlgorithm));
+                OnPropertyChanged(nameof(Algorithms));
+
+                _ = InitializeAsync();
+            }));
+        }
+        else
+        {
+            await _grpc.StartAlgorithmAsync(SelectedAlgorithm.AlgorithmId, CancellationToken.None);
+
+            _ui.Invoke((Action)(() =>
+            {
+                SelectedAlgorithm.Status = "Running";
+                SelectedAlgorithm.Message = "Algorithm started.";
+                OnPropertyChanged(nameof(SelectedAlgorithm));
+                OnPropertyChanged(nameof(Algorithms));
+                _ = InitializeAsync();
+            }));
+        }
     }
 
     private async Task InitializeAsync()

@@ -72,7 +72,7 @@ public sealed class AlgorithmEngine : IAlgorithmEngine
     // 전략 중지
     public void StopAlgorithm(string name)
     {
-        if (!_algorithms.TryRemove(name, out var entry))
+        if (!_algorithms.TryGetValue(name, out var entry))
             return;
 
         try

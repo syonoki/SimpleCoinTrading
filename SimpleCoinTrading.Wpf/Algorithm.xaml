@@ -7,8 +7,11 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="400"
              d:DesignInstance="{d:DesignInstance local:AlgorithmViewModel}">
+    <UserControl.Resources>
+        <local:AlgoActionButtonContentConverter x:Key="AlgoActionButtonContentConverter" />
+    </UserControl.Resources>
     <Grid>
-        <DataGrid Margin="4" ItemsSource="{Binding Algorithms}" SelectedItem="{Binding SelectedAlgorithm}" AutoGenerateColumns="False" SelectionMode="Single">
+        <DataGrid Margin="4" ItemsSource="{Binding Algorithms, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedAlgorithm}" AutoGenerateColumns="False" SelectionMode="Single">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="AlgoId" 
                                     Binding="{Binding AlgorithmId}" 
@@ -16,6 +19,17 @@
                 <DataGridTextColumn Header="Status" 
                                     Binding="{Binding Status}"
                                     Width="80"/>
+                <DataGridTemplateColumn Header="Action">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button 
+                                Content="{Binding Status, Converter={StaticResource AlgoActionButtonContentConverter}}" 
+                                Command="{Binding DataContext.ActionCommand, 
+                                  RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"
+                                CommandParameter="{Binding}"  />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Message" 
                                     Binding="{Binding Message}" 
                                     Width="*">

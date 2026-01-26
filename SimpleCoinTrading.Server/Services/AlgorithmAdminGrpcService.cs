@@ -44,7 +44,7 @@ public class AlgorithmAdminGrpcService : AlgorithmAdminService.AlgorithmAdminSer
             return Task.FromResult(new StartAlgorithmResponse
             {
                 Success = true,
-                Message = null
+                Message = ""
             });
         }
         catch (Exception e)
@@ -70,7 +70,7 @@ public class AlgorithmAdminGrpcService : AlgorithmAdminService.AlgorithmAdminSer
             return Task.FromResult(new StopAlgorithmResponse
             {
                 Success = true,
-                Message = null
+                Message = ""
             });
         }
         catch (Exception e)
