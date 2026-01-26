@@ -13,7 +13,7 @@ namespace SimpleCoinTrading.Server.Algorithms;
 /// </summary>
 public sealed class VolatilityBreakoutAlgorithm : IAlgorithm
 {
-    public string Name => $"VolatilityBreakoutAlgorithm-{_symbol}";
+    public string AlgorithmId { get; }
 
     private IAlgorithmContext? _ctx;
     private readonly List<IDisposable> _subs = new();
@@ -27,8 +27,9 @@ public sealed class VolatilityBreakoutAlgorithm : IAlgorithm
     private bool _isPositionHeld;
     private IAlgorithmLogger _logger;
 
-    public VolatilityBreakoutAlgorithm(string symbol = "KRW-BTC", decimal k = 0.5m, decimal orderQuantity = 0.001m)
+    public VolatilityBreakoutAlgorithm(string algorithmId, string symbol = "KRW-BTC", decimal k = 0.5m, decimal orderQuantity = 0.001m)
     {
+        AlgorithmId = algorithmId;
         _symbol = symbol;
         _k = k;
         _orderQuantity = orderQuantity;
@@ -44,14 +45,14 @@ public sealed class VolatilityBreakoutAlgorithm : IAlgorithm
 
     public void Run()
     {
-        _logger.Info($"[ALGO] {Name} started for {_symbol} (K={_k})");
+        _logger.Info($"[ALGO] {AlgorithmId} started for {_symbol} (K={_k})");
     }
 
     public void Stop()
     {
         foreach (var s in _subs) s.Dispose();
         _subs.Clear();
-        _logger.Info($"[ALGO] {Name} stopped.");
+        _logger.Info($"[ALGO] {AlgorithmId} stopped.");
     }
 
     private void OnBarClosed(BarClosedEvent e)

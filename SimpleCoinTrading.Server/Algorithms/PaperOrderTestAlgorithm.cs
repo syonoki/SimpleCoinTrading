@@ -8,13 +8,21 @@ namespace SimpleCoinTrading.Server.Algorithms;
 
 public sealed class PaperOrderTestAlgorithm : IAlgorithm
 {
-    public string Name => "PaperOrderTestAlgorithm";
-
     private IAlgorithmContext _ctx;
     private readonly List<IDisposable> _subs = new();
 
     private string? _activeOrderId;
     private IAlgorithmLogger _logger;
+
+    public PaperOrderTestAlgorithm(string algorithmId, string symbol)
+    {
+        AlgorithmId = algorithmId;
+        this.symbol = symbol;
+    }
+
+    public string AlgorithmId { get; }
+    public string symbol { get; set; }
+
 
     public void Initialize(IAlgorithmContext ctx)
     {
@@ -37,7 +45,10 @@ public sealed class PaperOrderTestAlgorithm : IAlgorithm
     {
         // 심볼 1개만 테스트한다고 가정
         var sym = e.Symbol;
-
+        
+        // 다른 심볼이면 무시
+        if (sym != symbol) return;
+        
         // 이미 활성 주문이 있으면 중복 제출 방지
         if (_activeOrderId != null) return;
 
@@ -53,7 +64,7 @@ public sealed class PaperOrderTestAlgorithm : IAlgorithm
         _ = Task.Run(async () =>
         {
             var ack = await _ctx!.PlaceOrderAsync(new PlaceOrderRequest(
-                AlgorithmId: Name,
+                AlgorithmId: AlgorithmId,
                 Symbol: sym,
                 Side: OrderSide.Buy,
                 Type: OrderType.Limit,

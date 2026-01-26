@@ -11,7 +11,7 @@
         <DataGrid Margin="4" ItemsSource="{Binding Algorithms}" SelectedItem="{Binding SelectedAlgorithm}" AutoGenerateColumns="False" SelectionMode="Single">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="AlgoId" 
-                                    Binding="{Binding Name}" 
+                                    Binding="{Binding AlgorithmId}" 
                                     Width="150"/>
                 <DataGridTextColumn Header="Status" 
                                     Binding="{Binding Status}"

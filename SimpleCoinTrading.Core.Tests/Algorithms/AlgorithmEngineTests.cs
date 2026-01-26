@@ -33,10 +33,10 @@ public class AlgorithmEngineTests
     {
         // Arrange
         var algo1 = Substitute.For<IAlgorithm>();
-        algo1.Name.Returns("Algo1");
+        algo1.AlgorithmId.Returns("Algo1");
         
         var algo2 = Substitute.For<IAlgorithm>();
-        algo2.Name.Returns("Algo2");
+        algo2.AlgorithmId.Returns("Algo2");
 
         IAlgorithmContext? ctx1 = null;
         algo1.When(x => x.Initialize(Arg.Any<IAlgorithmContext>()))
@@ -47,9 +47,11 @@ public class AlgorithmEngineTests
              .Do(c => ctx2 = c.Arg<IAlgorithmContext>());
 
         // Act
-        _engine.StartAlgorithm(algo1);
-        _engine.StartAlgorithm(algo2);
-
+        _engine.SetupAlgorithm(algo1);
+        _engine.StartAlgorithm("Algo1");
+        _engine.SetupAlgorithm(algo2);
+        _engine.StartAlgorithm("Algo2");
+        
         // Assert
         Assert.NotNull(ctx1);
         Assert.NotNull(ctx2);
@@ -63,13 +65,14 @@ public class AlgorithmEngineTests
     {
         // Arrange
         var algo = Substitute.For<IAlgorithm>();
-        algo.Name.Returns("Algo");
+        algo.AlgorithmId.Returns("Algo");
         
         IAlgorithmContext? capturedCtx = null;
         algo.When(x => x.Initialize(Arg.Any<IAlgorithmContext>()))
              .Do(c => capturedCtx = c.Arg<IAlgorithmContext>());
 
-        _engine.StartAlgorithm(algo);
+        _engine.SetupAlgorithm(algo);
+        _engine.StartAlgorithm("Algo");
         Assert.NotNull(capturedCtx);
 
         // Act

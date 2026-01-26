@@ -5,14 +5,14 @@ using SimpleCoinTrading.Core.Orders;
 
 namespace SimpleCoinTrading.Server.Services.Orders;
 
-public sealed class TradingControlService : TradingControl.TradingControlBase
+public sealed class TradingControlGrpcService : TradingControl.TradingControlBase
 {
     private readonly OrderStateProjection _state;
     private readonly ServerEventHub _hub;
     private readonly IBroker _broker;
-    private readonly ILogger<TradingControlService> _logger;
+    private readonly ILogger<TradingControlGrpcService> _logger;
 
-    public TradingControlService(OrderStateProjection state, ServerEventHub hub, IBroker broker, ILogger<TradingControlService> logger)
+    public TradingControlGrpcService(OrderStateProjection state, ServerEventHub hub, IBroker broker, ILogger<TradingControlGrpcService> logger)
     {
         _state = state;
         _hub = hub;

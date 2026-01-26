@@ -9,6 +9,7 @@ using SimpleCoinTrading.Core.Time.Clocks;
 using SimpleCoinTrading.Core.Time.TimeFlows;
 using SimpleCoinTrading.Data;
 using SimpleCoinTrading.Server;
+using SimpleCoinTrading.Server.Algorithms;
 using SimpleCoinTrading.Server.Services;
 using SimpleCoinTrading.Server.Services.Orders;
 using SimpleCoinTrading.Server.Services.Positions;
@@ -24,11 +25,11 @@ builder.Services.AddSingleton<MarketPipeline>(provider =>
     var clock = provider.GetRequiredService<IClock>();
     var repo = provider.GetRequiredService<IMarketDataReadStorage>() as IMarketDataStorage;
     var bus = provider.GetRequiredService<MarketDataEventBus>();
-    
+
     // Server mode typically uses LiveTimeFlow or a no-op if real-time clock is used.
     // Since we're in Program.cs top-level, we can't easily define a class here without placing it at the end.
     // Let's use a simple lambda-based implementation if possible, but ITimeAdvancer is an interface.
-    
+
     return new MarketPipeline(clock, new ServerTimeAdvancer(), repo!, bus);
 });
 
@@ -46,7 +47,7 @@ builder.Services.AddSingleton<IClock>(sp => sp.GetRequiredService<VirtualClock>(
 
 builder.Services.AddSingleton<DualModeTimeFlow>(provider =>
 {
-    return new DualModeTimeFlow(provider.GetRequiredService<VirtualClock>(), 
+    return new DualModeTimeFlow(provider.GetRequiredService<VirtualClock>(),
         TimeFlowMode.RealTimeReplay, TimeSpan.FromSeconds(1));
 });
 builder.Services.AddSingleton<ITimeFlow>(sp => sp.GetRequiredService<DualModeTimeFlow>());
@@ -61,8 +62,8 @@ var dataRepository = new InMemoryMarketDataRepository(tradeStorage, orderBookSto
 builder.Services.AddSingleton<IMarketDataStorage, InMemoryMarketDataRepository>(provider => dataRepository);
 builder.Services.AddSingleton<IMarketDataReadStorage, InMemoryMarketDataRepository>(provider => dataRepository);
 
-builder.Services.AddSingleton<IMarketDataView>(sp => 
-   new MarketDataView(sp.GetRequiredService<IClock>(), sp.GetRequiredService<IMarketDataReadStorage>()));
+builder.Services.AddSingleton<IMarketDataView>(sp =>
+    new MarketDataView(sp.GetRequiredService<IClock>(), sp.GetRequiredService<IMarketDataReadStorage>()));
 
 builder.Services.AddSingleton<PaperBroker>(provider =>
     new PaperBroker("Paper Broker", provider.GetRequiredService<IMarketDataView>(),
@@ -83,7 +84,7 @@ builder.Services.AddHostedService<PositionProjectionHubBridge>();
 
 builder.Services.AddSingleton<MarketDataEventBus>();
 builder.Services.AddSingleton<ITradingGuard, TradingGuard>();
-builder.Services.AddSingleton<IRateLimiter>(sp => 
+builder.Services.AddSingleton<IRateLimiter>(sp =>
     new PerSecondFixedWindowRateLimiter(sp.GetRequiredService<IClock>(), 10, "ServerLimit"));
 builder.Services.AddSingleton<IIdempotencyStore, InMemoryIdempotencyStore>();
 builder.Services.AddSingleton<IOrderIdMap, InMemoryOrderIdMap>();
@@ -94,12 +95,116 @@ builder.Services.AddSingleton<IAlgorithmLoggerFactory, AlgorithmLoggerFactory>()
 
 builder.Services.AddSingleton<IOrderOrchestrator, DelegatingOrchestrator>();
 
-builder.Services.AddSingleton<IAlgorithmContext, AlgorithmContext>();
-builder.Services.AddSingleton<IAlgorithmEngine, AlgorithmEngine>();
 
-builder.Services.AddSingleton<IAlgorithmLogSink>(
-    _ => new AlgorithmFileLogSink(
-        baseDir: Path.Combine(AppContext.BaseDirectory, "algo-logs")));
+builder.Services.AddSingleton<IAlgorithmFactoryRegistry>(provider =>
+{
+    var factories = new List<IAlgorithmFactory>()
+    {
+        new PaperOrderAlgorithmFactory(),
+        new VolatilityBreakoutAlgorithmFactory()
+    };
+    var registry = new AlgorithmFactoryRegistry(factories);
+
+    return registry;
+});
+
+builder.Services.AddSingleton<IAlgorithmParameterRegistry>(provider =>
+{
+    var parameters = new Dictionary<string, IReadOnlyDictionary<string, object>>()
+    {
+        {
+            "PaperOrderAlgorithm-KRW-BTC",
+            new Dictionary<string, object>()
+            {
+                { "symbol", "KRW-BTC" }
+            }
+        },
+        {
+            "PaperOrderAlgorithm-KRW-ETH",
+            new Dictionary<string, object>()
+            {
+                { "symbol", "KRW-ETH" }
+            }
+        },
+        {
+            "VolatilityBreakoutAlgorithm-KRW-BTC",
+            new Dictionary<string, object>()
+            {
+                { "symbol", "KRW-ETH" }
+            }
+        },
+        {
+            "VolatilityBreakoutAlgorithm-KRW-ETH",
+            new Dictionary<string, object>()
+            {
+                { "symbol", "KRW-ETH" }
+            }
+        }
+    };
+    
+    var registry = new AlgorithmParameterRegistry(parameters);
+    return registry;
+});
+
+builder.Services.AddSingleton<IAlgorithmRegistry>(provider =>
+{
+    var registry = new AlgorithmRegistry(new List<AlgorithmRegistryItem>()
+    {
+        new AlgorithmRegistryItem
+        {
+            AlgorithmId = "PaperOrderAlgorithm-KRW-BTC",
+            FactoryKey = "PaperOrderAlgorithm",
+            IsActive = true
+        },
+        new AlgorithmRegistryItem
+        {
+            AlgorithmId = "PaperOrderAlgorithm-KRW-ETH",
+            FactoryKey = "PaperOrderAlgorithm",
+            IsActive = true
+        },
+        new AlgorithmRegistryItem
+        {
+            AlgorithmId = "VolatilityBreakoutAlgorithm-KRW-BTC",
+            FactoryKey = "VolatilityBreakoutAlgorithm",
+            IsActive = true
+        },
+        new AlgorithmRegistryItem
+        {
+            AlgorithmId = "VolatilityBreakoutAlgorithm-KRW-ETH",
+            FactoryKey = "VolatilityBreakoutAlgorithm",
+            IsActive = true
+        },
+    });
+    return registry;
+});
+
+builder.Services.AddSingleton<IAlgorithmEngine, AlgorithmEngine>(provider
+    =>
+{
+    var engine = new AlgorithmEngine(
+        provider.GetRequiredService<IMarketDataView>(),
+        provider.GetRequiredService<IClock>(),
+        provider.GetRequiredService<MarketDataEventBus>(),
+        provider.GetRequiredService<IOrderOrchestrator>(),
+        provider.GetRequiredService<IAlgorithmLoggerFactory>()
+        );
+    
+    var algos = provider.GetRequiredService<IAlgorithmRegistry>().getAllAlgorithms();
+    var factoryRegistry = provider.GetRequiredService<IAlgorithmFactoryRegistry>();
+    var parameterRegistry = provider.GetRequiredService<IAlgorithmParameterRegistry>();
+    foreach (var ari in algos)
+    {
+        var factory = factoryRegistry.Get(ari.FactoryKey);
+        var param = parameterRegistry.GetParameters(ari.AlgorithmId);
+        var algo = factory.Create(ari.AlgorithmId, param);
+        engine.SetupAlgorithm(algo);
+        engine.StartAlgorithm(algo.AlgorithmId);
+    }
+    return engine;
+});
+
+builder.Services.AddSingleton<IAlgorithmLogSink>(_ => new AlgorithmFileLogSink(
+    baseDir: Path.Combine(AppContext.BaseDirectory, "algo-logs")));
 
 builder.Services.AddSingleton<IAlgorithmLogHub>(sp =>
 {
@@ -111,8 +216,6 @@ builder.Services.AddSingleton<IAlgorithmLogHub>(sp =>
 builder.Services.AddSingleton<OrderStateProjection>();
 builder.Services.AddSingleton<ServerEventHub>();
 
-builder.Services.AddSingleton<IAlgorithmLoggerFactory, AlgorithmLoggerFactory>();
-
 builder.Services.AddSingleton<TradingHostedService>();
 builder.Services.AddHostedService<TradingHostedService>();
 builder.Services.AddHostedService<OrderLifecycleTracker>();
@@ -123,9 +226,10 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.MapGrpcService<GreeterService>();
 // gRPC endpoints
-app.MapGrpcService<TradingControlService>();
+app.MapGrpcService<TradingControlGrpcService>();
 app.MapGrpcService<AlgoLogGrpcService>();
-app.MapGrpcService<PositionControlService>();
+app.MapGrpcService<PositionControlGrpcService>();
+app.MapGrpcService<AlgorithmAdminGrpcService>();
 
 // health/ready (운영/모니터링)
 app.MapGet("/health", () => Results.Ok(new { ok = true }));
@@ -146,6 +250,8 @@ namespace SimpleCoinTrading.Server
 {
     public class ServerTimeAdvancer : ITimeAdvancer
     {
-        public void AdvanceTo(DateTime marketUtc) { }
+        public void AdvanceTo(DateTime marketUtc)
+        {
+        }
     }
 }

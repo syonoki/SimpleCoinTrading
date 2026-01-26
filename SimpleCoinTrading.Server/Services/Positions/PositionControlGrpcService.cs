@@ -16,12 +16,12 @@ public static class PositionDtoMapper
         UpdatedAtUnixMs = p.UpdatedAt.ToUnixTimeMilliseconds()
     };
 }
-public class PositionControlService: PositionStateService.PositionStateServiceBase
+public class PositionControlGrpcService: PositionStateService.PositionStateServiceBase
 {
     private readonly PositionProjection _projection;
     private readonly IPositionUpdateHub _hub;
 
-    public PositionControlService(PositionProjection projection, IPositionUpdateHub hub)
+    public PositionControlGrpcService(PositionProjection projection, IPositionUpdateHub hub)
     {
         _projection = projection;
         _hub = hub;

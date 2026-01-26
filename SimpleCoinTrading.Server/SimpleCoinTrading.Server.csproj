@@ -12,6 +12,7 @@
         <Protobuf Include="Protos\trading.proto" GrpcServices="Server"/>
         <Protobuf Include="Protos\log.proto" GrpcServices="Server"/>
         <Protobuf Include="Protos\position.proto" GrpcServices="Server"/>
+        <Protobuf Include="Protos\algorithm.proto" GrpcServices="Server"/>
     </ItemGroup>
 
     <ItemGroup>

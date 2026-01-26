@@ -77,7 +77,9 @@ public sealed class SampleViewModel : INotifyPropertyChanged
             Status = "Connecting...";
             // 1) Snapshot 1회
             var snap = await _grpc.GetSnapshotAsync(_cts.Token);
-            Application.Current.Dispatcher.Invoke(() =>
+            var algoList = await _grpc.ListAlgorithmsAsync(_cts.Token);
+
+            Application.Current.Dispatcher.Invoke((Action)(() =>
             {
                 Orders.Clear();
                 foreach (var o in snap.Orders) Orders.Add(o);
@@ -86,12 +88,12 @@ public sealed class SampleViewModel : INotifyPropertyChanged
                 foreach (var f in snap.Fills) Fills.Add(f);
 
                 Algorithms.Clear();
-                foreach (var a in snap.Algorithms) Algorithms.Add(a);
+                foreach (var a in algoList.States) Algorithms.Add(a);
 
                 Seq = snap.Seq;
                 Status = snap.MarketDataOk ? "Connected (Market OK)" : "Connected (Market NOT OK)";
                 KillSwitchEnabled = snap.KillSwitchEnabled;
-            });
+            }));
 
             // 2) Streaming 시작 (백그라운드)
             _ = Task.Run(() => RunEventStreamAsync(snap.Seq, _cts.Token), _cts.Token);
@@ -140,9 +142,10 @@ public sealed class SampleViewModel : INotifyPropertyChanged
                 try
                 {
                     var snap = await _grpc.GetSnapshotAsync(ct);
+                    var algoList = await _grpc.ListAlgorithmsAsync(ct);
                     cursor = snap.Seq;
 
-                    Application.Current.Dispatcher.Invoke(() =>
+                    Application.Current.Dispatcher.Invoke((Action)(() =>
                     {
                         Orders.Clear();
                         foreach (var o in snap.Orders) Orders.Add(o);
@@ -151,12 +154,12 @@ public sealed class SampleViewModel : INotifyPropertyChanged
                         foreach (var f in snap.Fills) Fills.Add(f);
 
                         Algorithms.Clear();
-                        foreach (var a in snap.Algorithms) Algorithms.Add(a);
+                        foreach (var a in algoList.States) Algorithms.Add(a);
 
                         Seq = cursor;
                         //Status = snap.MarketDataOk ? "Reconnected (Market OK)" : "Reconnected (Market NOT OK)";
                         KillSwitchEnabled = snap.KillSwitchEnabled;
-                    });
+                    }));
                 }
                 catch
                 {

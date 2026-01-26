@@ -29,22 +29,18 @@ public sealed class AlgorithmEngine : IAlgorithmEngine
 
     public IReadOnlyCollection<string> RunningAlgorithms => _algorithms.Keys.ToList();
 
-    // 전략 추가 + 시작
-    public void StartAlgorithm(IAlgorithm algorithm)
+    public void SetupAlgorithm(IAlgorithm algorithm)
     {
-        if (_algorithms.ContainsKey(algorithm.Name))
-            throw new InvalidOperationException($"Algorithm '{algorithm.Name}' already running.");
-
+        if (_algorithms.ContainsKey(algorithm.AlgorithmId))
+            throw new InvalidOperationException($"Algorithm '{algorithm.AlgorithmId}' already running.");
+        
         var runtime = new AlgorithmRuntime(algorithm);
-        var context = CreateContext(algorithm.Name);
+        var context = CreateContext(algorithm.AlgorithmId);
 
         try
         {
             algorithm.Initialize(context);
-            algorithm.Run();
-
-            runtime.MarkRunning();
-            _algorithms[algorithm.Name] = (runtime, context);
+            _algorithms[algorithm.AlgorithmId] = (runtime, context);
         }
         catch (Exception ex)
         {
@@ -54,6 +50,25 @@ public sealed class AlgorithmEngine : IAlgorithmEngine
         }
     }
 
+    public void StartAlgorithm(string algorithmId)
+    {
+        if (!_algorithms.ContainsKey(algorithmId))
+            throw new InvalidOperationException($"Algorithm '{algorithmId}' not found.");
+        
+        var algorithm = _algorithms[algorithmId].Item1.Algorithm;
+        var runtime = _algorithms[algorithmId].Item1;
+
+        try
+        {
+            algorithm.Run();
+            runtime.MarkRunning();
+        }
+        catch (Exception ex)
+        {
+            runtime.MarkFaulted(ex);
+            throw;
+        }
+    }
     // 전략 중지
     public void StopAlgorithm(string name)
     {
@@ -89,5 +104,15 @@ public sealed class AlgorithmEngine : IAlgorithmEngine
         return new AlgorithmContext(
             algorithmId,
             _market, _clock, _bus, _orderOrchestrator, _logFactory);
+    }
+    
+    public void Dispose()
+    {
+        StopAll();
+        foreach (var entry in _algorithms.Values)
+        {
+            entry.Context.Dispose();
+        }
+        _algorithms.Clear();
     }
 }

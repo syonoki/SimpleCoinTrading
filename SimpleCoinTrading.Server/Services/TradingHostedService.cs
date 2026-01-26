@@ -77,11 +77,6 @@ public sealed class TradingHostedService : BackgroundService
 
         // 2) 각 컴포넌트 start
         await _broker.StartAsync(cancellationToken);
-        var sampleAlgorithm1 = new PaperOrderTestAlgorithm();
-        var sampleAlgorithm2 = new VolatilityBreakoutAlgorithm();
-        
-        _engine.StartAlgorithm(sampleAlgorithm1); // 전략이 있다면 여기서 시작
-        _engine.StartAlgorithm(sampleAlgorithm2); // 전략이 있다면 여기서 시작
 
         await _marketSource.RunAsync(cancellationToken); // WS 시작
 

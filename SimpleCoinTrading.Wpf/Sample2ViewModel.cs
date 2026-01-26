@@ -37,7 +37,7 @@ public class Sample2ViewModel : INotifyPropertyChanged
     {
         var channel = GrpcChannel.ForAddress("http://localhost:5200");
         _grpc = new GrpcTradingClient("http://localhost:5200");
-        AlgorithmViewModel = new AlgorithmViewModel(channel);
+        AlgorithmViewModel = new AlgorithmViewModel(_grpc, channel);
         LogViewModel = new LogViewModel(channel);
         PositionsViewModel = new PositionsViewModel(channel);
         OrdersViewModel = new OrdersViewModel(_grpc);
@@ -46,9 +46,9 @@ public class Sample2ViewModel : INotifyPropertyChanged
         {
             if (algo != null)
             {
-                _ = LogViewModel.SetAlgorithmAsync(algo.Name);
-                _ = PositionsViewModel.SelectAlgorithmAsync(algo.Name);
-                _ = OrdersViewModel.SelectAlgorithmAsync(algo.Name);
+                _ = LogViewModel.SetAlgorithmAsync(algo.AlgorithmId);
+                _ = PositionsViewModel.SelectAlgorithmAsync(algo.AlgorithmId);
+                _ = OrdersViewModel.SelectAlgorithmAsync(algo.AlgorithmId);
             }
         };
         

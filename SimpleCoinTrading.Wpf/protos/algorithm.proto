@@ -1,0 +1,41 @@
+﻿syntax = "proto3";
+package trading;
+
+option csharp_namespace = "SimpleCoinTrading.Server";
+
+message AlgorithmState {
+  string algorithm_id = 1;
+  string status = 2; // "RUNNING"/"STOPPED"/"FAULTED"
+  string message = 3;
+}
+
+service AlgorithmAdminService {
+  rpc ListAlgorithms(ListAlgorithmsRequest) returns (ListAlgorithmsResponse);
+  rpc StartAlgorithm(StartAlgorithmRequest) returns (StartAlgorithmResponse);
+  rpc StopAlgorithm(StopAlgorithmRequest) returns (StopAlgorithmResponse);
+}
+
+message ListAlgorithmsRequest {
+}
+
+message ListAlgorithmsResponse {
+  repeated AlgorithmState states = 1;
+}
+
+message StartAlgorithmRequest {
+  string algorithm_id = 1;
+}
+
+message StartAlgorithmResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message StopAlgorithmRequest {
+  string algorithm_id = 1;
+}
+
+message StopAlgorithmResponse {
+  bool success = 1;
+  string message = 2;
+}

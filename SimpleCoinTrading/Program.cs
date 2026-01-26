@@ -15,7 +15,7 @@ using SimpleCoinTrading.Data;
 public sealed class PaperOrderTestAlgorithm : IAlgorithm
 {
     private readonly bool _testRateLimit;
-    public string Name => "PaperOrderTestAlgorithm";
+    public string AlgorithmId => "PaperOrderTestAlgorithm";
 
     private IAlgorithmContext? _ctx;
     private readonly List<IDisposable> _subs = new();

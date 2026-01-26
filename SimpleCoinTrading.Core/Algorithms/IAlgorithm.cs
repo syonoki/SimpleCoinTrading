@@ -30,7 +30,7 @@ public interface IAlgorithmContext
 
 public interface IAlgorithm
 {
-    string Name { get; }
+    string AlgorithmId { get; }
 
     void Initialize(IAlgorithmContext ctx); // 여기서 핸들러 등록
     void Run();                             // 선택: 타이머/백그라운드 작업 시작

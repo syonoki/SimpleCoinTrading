@@ -12,8 +12,9 @@ namespace SimpleCoinTrading.Wpf;
 public class AlgorithmViewModel : INotifyPropertyChanged
 {
     public ObservableCollection<AlgorithmState> Algorithms { get; } = new();
-    
+
     private AlgorithmState? _selectedAlgorithm;
+
     public AlgorithmState? SelectedAlgorithm
     {
         get => _selectedAlgorithm;
@@ -29,11 +30,16 @@ public class AlgorithmViewModel : INotifyPropertyChanged
     public event EventHandler<AlgorithmState?>? SelectedAlgorithmChanged;
 
     private readonly Dispatcher _ui = Application.Current.Dispatcher;
-    private readonly TradingControl.TradingControlClient _tradingControl;
+    private readonly GrpcTradingClient _grpc;
+    private readonly GrpcChannel _channel;
+    private readonly AlgorithmAdminService.AlgorithmAdminServiceClient _algoAdminClient;
 
-    public AlgorithmViewModel(GrpcChannel channel)
+    public AlgorithmViewModel(GrpcTradingClient grpc, GrpcChannel channel)
     {
-        _tradingControl = new TradingControl.TradingControlClient(channel);
+        _grpc = grpc;
+        _channel = channel;
+        _algoAdminClient = new AlgorithmAdminService.AlgorithmAdminServiceClient(channel);
+
         _ = InitializeAsync();
     }
 
@@ -41,11 +47,13 @@ public class AlgorithmViewModel : INotifyPropertyChanged
     {
         try
         {
-            var snapshot = await _tradingControl.GetSnapshotAsync(new GetSnapshotRequest());
-            _ui.Invoke(() =>
+            var response = await _algoAdminClient.ListAlgorithmsAsync(
+                new ListAlgorithmsRequest() { },
+                cancellationToken: CancellationToken.None);
+            _ui.Invoke((Action)(() =>
             {
                 Algorithms.Clear();
-                foreach (var algo in snapshot.Algorithms)
+                foreach (var algo in response.States)
                 {
                     Algorithms.Add(algo);
                 }
@@ -54,13 +62,14 @@ public class AlgorithmViewModel : INotifyPropertyChanged
                 {
                     SelectedAlgorithm = Algorithms[0];
                 }
-            });
+            }));
 
             _ = Task.Run(() => SubscribeEventsLoopAsync());
         }
-        catch
+        catch(Exception e)
         {
             // 오류 처리
+            Console.WriteLine(e);
         }
     }
 
@@ -71,16 +80,16 @@ public class AlgorithmViewModel : INotifyPropertyChanged
         {
             try
             {
-                using var call = _tradingControl.SubscribeEvents(new SubscribeEventsRequest());
+                using var call = _grpc.SubscribeEvents(0, CancellationToken.None);
                 backoffMs = 1000;
                 await foreach (var ev in call.ResponseStream.ReadAllAsync())
                 {
-                    var snapshot = await _tradingControl.GetSnapshotAsync(new GetSnapshotRequest());
-                    _ui.Invoke(() =>
+                    var response = await _grpc.ListAlgorithmsAsync(CancellationToken.None);
+                    _ui.Invoke((Action)(() =>
                     {
-                        foreach (var algoState in snapshot.Algorithms)
+                        foreach (var algoState in response.States)
                         {
-                            var existing = Algorithms.FirstOrDefault(a => a.Name == algoState.Name);
+                            var existing = Algorithms.FirstOrDefault(a => a.AlgorithmId == algoState.AlgorithmId);
                             if (existing != null)
                             {
                                 existing.Status = algoState.Status;
@@ -91,7 +100,7 @@ public class AlgorithmViewModel : INotifyPropertyChanged
                                 Algorithms.Add(algoState);
                             }
                         }
-                    });
+                    }));
                 }
             }
             catch
@@ -103,10 +112,12 @@ public class AlgorithmViewModel : INotifyPropertyChanged
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
     protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(field, value)) return false;

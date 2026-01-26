@@ -26,8 +26,6 @@ message SnapshotResponse {
 
   bool market_data_ok = 6;
   string market_data_status = 7;
-
-  repeated AlgorithmState algorithms = 8;
   bool KillSwitchEnabled=9;
 }
 
@@ -62,12 +60,6 @@ message Position {
   double avg_price = 3;
 }
 
-message AlgorithmState {
-  string name = 1;
-  string status = 2; // "RUNNING"/"STOPPED"/"FAULTED"
-  string message = 3;
-}
-
 message ServerEvent {
   int64 seq = 1;
   google.protobuf.Timestamp time_utc = 2;
@@ -86,7 +78,6 @@ message SystemEvent {
   string level = 1;   // "INFO"/"WARN"/"ERROR"
   string message = 2;
 }
-
 
 message SetKillSwitchRequest {
   bool enabled = 1;

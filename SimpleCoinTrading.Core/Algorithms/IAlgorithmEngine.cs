@@ -30,10 +30,12 @@ public enum AlgorithmStatus
     Faulted
 }
 
-public interface IAlgorithmEngine
+public interface IAlgorithmEngine: IDisposable
 {
-    public void StartAlgorithm(IAlgorithm algorithm);
-    public void StopAlgorithm(string name);
+    public void SetupAlgorithm(IAlgorithm algorithm);
+    
+    public void StartAlgorithm(string algorithmId);
+    public void StopAlgorithm(string algorithmId);
     public void StopAll();
 
     public IReadOnlyDictionary<string, AlgorithmRuntime> Algorithms { get; }
